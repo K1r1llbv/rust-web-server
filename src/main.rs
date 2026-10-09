@@ -31,15 +31,20 @@ fn handle_connection_stream(mut stream: TcpStream) {
 
     println!("request was:\n{request_lines:#?}");
 
-    let contents = fs::read_to_string("hello.html")
-        .expect("Не удалось прочитать hello.html");
+    if !request_lines.is_empty() {
+        let (resp, file_path) = match request_lines[0].as_str() {
+            "GET / HTTP/1.1" => ("HTTP/1.1 200 OK", "hello.html"),
+            _ => ("HTTP/1.1 404 NOT FOUND", "404.html"),
+        };
+        let contents = fs::read_to_string(file_path).expect("Не удалось прочитать html документ");
 
-    let response = format!(
-        "HTTP/1.1 200 OK\r\nContent-Type: text/html; charset=utf-8\r\nContent-Length: {}\r\nConnection: close\r\n\r\n{}",
-        contents.len(),
-        contents
-    );
+        let response = format!(
+            "{}\r\nContent-Type: text/html; charset=utf-8\r\nContent-Length: {}\r\nConnection: close\r\n\r\n{}",
+            resp,
+            contents.len(),
+            contents,
+        );
 
-    stream.write_all(response.as_bytes()).unwrap();
-
+        stream.write_all(response.as_bytes()).unwrap();
+    };
 }
