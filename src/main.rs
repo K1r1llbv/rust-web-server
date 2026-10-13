@@ -1,3 +1,4 @@
+use rust_web_server::ThreadPool;
 use std::{
     fs,
     io::{BufReader, prelude::*},
@@ -8,15 +9,19 @@ fn main() {
     let mut counter = 0;
     let listener = TcpListener::bind("127.0.0.1:7878").unwrap();
 
+    let pool = ThreadPool::new(4);
+
     println!("server is listening now!");
 
     for stream in listener.incoming() {
         let stream = stream.unwrap();
 
         counter += 1;
-        println!("client is online now number {counter}");
+        println!("accepted connection number {counter}");
 
-        handle_connection_stream(stream);
+        pool.execute(move || {
+            handle_connection_stream(stream);
+        });
     }
 }
 
