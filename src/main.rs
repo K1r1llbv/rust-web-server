@@ -13,7 +13,7 @@ fn main() {
 
     println!("server is listening now!");
 
-    for stream in listener.incoming() {
+    for stream in listener.incoming().take(2) {
         let stream = stream.unwrap();
 
         counter += 1;
